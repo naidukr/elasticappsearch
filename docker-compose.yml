@@ -1,0 +1,45 @@
+version: '2'
+services:
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 1g
+    volumes:
+      - esdata1:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.5.1
+    links:
+      - elasticsearch
+    mem_limit: 512m
+    ports:
+      - 5601:5601
+
+  appsearch:
+    image: docker.elastic.co/app-search/app-search:7.5.1
+    environment:
+      - "elasticsearch.host=http://elasticsearch:9200"
+      - allow_es_settings_modification=true
+      - JAVA_OPTS=-Xmx1g
+    links:
+      - elasticsearch
+    mem_limit: 2g
+    ports:
+      - 3002:3002
+    
+    expose:
+      - 8080
+
+volumes:
+  esdata1:
+    driver: local
